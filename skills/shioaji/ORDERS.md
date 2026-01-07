@@ -427,133 +427,251 @@ trade.status.cancel_quantity # Cancelled quantity 取消量
 
 ## Order Callbacks 訂單回報
 
-### Set Trade Callback 設定交易回報
+Order and deal events are pushed automatically when orders are submitted or filled.
+委託及成交事件會在下單或成交時主動推送。
+
+### Set Order Callback 設定回報 Callback
 
 ```python
-@api.on_order_callback
-def order_callback(stat, msg):
-    print(f"Status: {stat}")
+def order_cb(stat, msg):
+    print(f"State: {stat}")
     print(f"Message: {msg}")
+
+api.set_order_callback(order_cb)
 ```
 
-### Callback Message Fields 回報訊息欄位
+### OrderState Types 回報狀態類型
 
 ```python
-msg["operation"]    # Operation type 操作類型
-msg["order"]        # Order info 訂單資訊
-msg["status"]       # Status info 狀態資訊
-msg["contract"]     # Contract info 合約資訊
+import shioaji as sj
+
+# Stock 股票
+sj.constant.OrderState.StockOrder  # 股票委託回報
+sj.constant.OrderState.StockDeal   # 股票成交回報
+
+# Futures/Options 期貨選擇權
+sj.constant.OrderState.FuturesOrder  # 期貨委託回報
+sj.constant.OrderState.FuturesDeal   # 期貨成交回報
 ```
 
----
+### TypedDict Definitions 類型定義
 
-## Reserve Orders 預收券款
-
-For stocks under disposition (處置股), attention (注意股), or warning (警示股), you must reserve shares before trading.
-處置股、注意股或警示股在交易前須預收券款。
-
-### Query Reserve Summary 查詢預收券款狀態
+For better type hints, use these TypedDict definitions:
+使用以下 TypedDict 定義以獲得更好的型別提示：
 
 ```python
-# Get reserve summary 取得預收券款摘要
-reserve_summary = api.stock_reserve_summary(api.stock_account)
+from typing import TypedDict, Literal
 
-for stock in reserve_summary.response.stocks:
-    print(f"Code: {stock.contract.code}")
-    print(f"Available: {stock.available_share}")
-    print(f"Reserved: {stock.reserved_share}")
+class OperationDict(TypedDict):
+    op_type: Literal["New", "Cancel", "UpdatePrice", "UpdateQty"]
+    op_code: str  # "00" = success, others = fail
+    op_msg: str
+
+class AccountDict(TypedDict):
+    account_type: Literal["S", "F"]  # S=Stock, F=Futures
+    person_id: str
+    broker_id: str
+    account_id: str
+    signed: bool
+
+class StockOrderDict(TypedDict):
+    id: str
+    seqno: str
+    ordno: str
+    account: AccountDict
+    action: Literal["Buy", "Sell"]
+    price: float
+    quantity: int
+    order_type: Literal["ROD", "IOC", "FOK"]
+    price_type: Literal["LMT", "MKT", "MKP"]
+    order_cond: Literal["Cash", "MarginTrading", "ShortSelling"]
+    order_lot: Literal["Common", "Odd", "IntradayOdd", "Fixing"]
+    custom_field: str
+
+class OrderStatusDict(TypedDict):
+    id: str
+    exchange_ts: float
+    modified_price: float
+    cancel_quantity: int
+    order_quantity: int
+    web_id: str
+
+class StockContractDict(TypedDict):
+    security_type: Literal["STK"]
+    exchange: str
+    code: str
+    symbol: str
+    name: str
+    currency: str
+
+class StockOrderEvent(TypedDict):
+    operation: OperationDict
+    order: StockOrderDict
+    status: OrderStatusDict
+    contract: StockContractDict
+
+class StockDealEvent(TypedDict):
+    trade_id: str
+    seqno: str
+    ordno: str
+    exchange_seq: str
+    broker_id: str
+    account_id: str
+    action: Literal["Buy", "Sell"]
+    code: str
+    order_cond: Literal["Cash", "MarginTrading", "ShortSelling"]
+    order_lot: Literal["Common", "Odd", "IntradayOdd", "Fixing"]
+    price: float
+    quantity: int
+    web_id: str
+    custom_field: str
+    ts: float
+
+class FuturesOrderDict(TypedDict):
+    id: str
+    seqno: str
+    ordno: str
+    account: AccountDict
+    action: Literal["Buy", "Sell"]
+    price: float
+    quantity: int
+    order_type: Literal["ROD", "IOC", "FOK"]
+    price_type: Literal["LMT", "MKT", "MKP"]
+    market_type: Literal["Day", "Night"]
+    oc_type: Literal["New", "Cover", "Auto"]
+    subaccount: str
+    combo: bool
+
+class FuturesContractDict(TypedDict):
+    security_type: Literal["FUT", "OPT"]
+    code: str
+    full_code: str
+    exchange: str
+    delivery_month: str
+    delivery_date: str
+    strike_price: float
+    option_right: Literal["Future", "OptionCall", "OptionPut"]
+
+class FuturesOrderEvent(TypedDict):
+    operation: OperationDict
+    order: FuturesOrderDict
+    status: OrderStatusDict
+    contract: FuturesContractDict
+
+class FuturesDealEvent(TypedDict):
+    trade_id: str
+    seqno: str
+    ordno: str
+    exchange_seq: str
+    broker_id: str
+    account_id: str
+    action: Literal["Buy", "Sell"]
+    code: str
+    full_code: str
+    price: float
+    quantity: int
+    subaccount: str
+    security_type: Literal["FUT", "OPT"]
+    delivery_month: str
+    strike_price: float
+    option_right: Literal["Future", "OptionCall", "OptionPut"]
+    market_type: Literal["Day", "Night"]
+    combo: bool
+    ts: float
 ```
 
-### Reserve Stock 預收股票
+### Handle Different Events 處理不同事件
+
+Split handlers by event type for clear type hints:
+依事件類型拆分 handler 以獲得明確的型別提示：
 
 ```python
-contract = api.Contracts.Stocks["2890"]
+import shioaji as sj
+from shioaji.constant import OrderState
 
-# Reserve 1000 shares 預收 1000 股
-resp = api.reserve_stock(api.stock_account, contract, 1000)
+def stock_order_handler(event: StockOrderEvent):
+    """Handle stock order event 處理股票委託回報"""
+    op = event["operation"]
+    order = event["order"]
+    if op["op_code"] == "00":
+        print(f"Stock order {op['op_type']} success: {order['id']}")
+    else:
+        print(f"Stock order failed: {op['op_msg']}")
 
-print(f"Status: {resp.response.status}")
-print(f"Share: {resp.response.share}")
+def stock_deal_handler(deal: StockDealEvent):
+    """Handle stock deal event 處理股票成交回報"""
+    print(f"Stock deal: {deal['code']} @ {deal['price']} x {deal['quantity']}")
+
+def futures_order_handler(event: FuturesOrderEvent):
+    """Handle futures order event 處理期貨委託回報"""
+    op = event["operation"]
+    order = event["order"]
+    contract = event["contract"]
+    if op["op_code"] == "00":
+        print(f"Futures order {op['op_type']}: {order['action']} {contract['code']}")
+    else:
+        print(f"Futures order failed: {op['op_msg']}")
+
+def futures_deal_handler(deal: FuturesDealEvent):
+    """Handle futures deal event 處理期貨成交回報"""
+    print(f"Futures deal: {deal['code']} @ {deal['price']} x {deal['quantity']}")
+
+def order_cb(stat: OrderState, msg: dict):
+    """Main callback dispatcher 主回調分發器"""
+    if stat == OrderState.StockOrder:
+        stock_order_handler(msg)
+    elif stat == OrderState.StockDeal:
+        stock_deal_handler(msg)
+    elif stat == OrderState.FuturesOrder:
+        futures_order_handler(msg)
+    elif stat == OrderState.FuturesDeal:
+        futures_deal_handler(msg)
+
+api.set_order_callback(order_cb)
 ```
 
-### Query Reserve Detail 查詢預收明細
+### Note 注意事項
 
-```python
-detail = api.stock_reserve_detail(api.stock_account)
-
-for stock in detail.response.stocks:
-    print(f"Code: {stock.contract.code}")
-    print(f"Share: {stock.share}")
-    print(f"Status: {stock.status}")
-    print(f"Info: {stock.info}")
-```
-
-### Reserve Earmarking 預收款項
-
-For pre-payment of cash:
-現金預收款項：
-
-```python
-contract = api.Contracts.Stocks["2890"]
-
-# Reserve with price 預收並指定價格
-resp = api.reserve_earmarking(api.stock_account, contract, 1000, 15.15)
-
-print(f"Amount: {resp.response.amount}")
-print(f"Status: {resp.response.status}")
-```
-
-### Query Earmarking Detail 查詢預收款項明細
-
-```python
-detail = api.earmarking_detail(api.stock_account)
-
-for stock in detail.response.stocks:
-    print(f"Code: {stock.contract.code}")
-    print(f"Share: {stock.share}")
-    print(f"Price: {stock.price}")
-    print(f"Amount: {stock.amount}")
-```
-
-### Reserve All Available 全部預收
-
-```python
-# Reserve all available shares 預收所有可用股票
-reserve_summary = api.stock_reserve_summary(api.stock_account)
-
-for stock in reserve_summary.response.stocks:
-    if stock.available_share > 0:
-        resp = api.reserve_stock(
-            api.stock_account,
-            stock.contract,
-            stock.available_share
-        )
-        print(f"Reserved {stock.contract.code}: {resp.response.status}")
-```
+Deal events may arrive before order events due to exchange message priority.
+成交回報可能比委託回報更早到達，因為交易所訊息優先順序不同。
 
 ---
 
 ## Best Practices 最佳實踐
 
-### 1. Always Check Order Status 總是檢查訂單狀態
+### 1. Use Callbacks for Real-time Status 使用主動回報獲取即時狀態
+
+Prefer callbacks over `update_status()` to avoid rate limits.
+優先使用主動回報而非 `update_status()` 以避免觸發流量限制。
 
 ```python
-trade = api.place_order(contract, order)
-api.update_status(api.stock_account)
+def order_cb(stat: OrderState, msg: dict):
+    if stat == OrderState.StockOrder:
+        if msg["operation"]["op_code"] == "00":
+            print(f"Order accepted: {msg['order']['id']}")
+        else:
+            print(f"Order rejected: {msg['operation']['op_msg']}")
+    elif stat == OrderState.StockDeal:
+        print(f"Filled: {msg['code']} @ {msg['price']} x {msg['quantity']}")
 
-if trade.status.status == sj.constant.Status.Filled:
-    print("Order filled!")
-elif trade.status.status == sj.constant.Status.Failed:
-    print(f"Order failed: {trade.status.msg}")
+api.set_order_callback(order_cb)
 ```
 
-### 2. Use Callbacks for Real-time Updates 使用回報獲取即時更新
+### 2. Use update_status Only When Needed 僅在必要時使用 update_status
+
+Only use `update_status()` for:
+僅在以下情況使用 `update_status()`：
+
+- After reconnection 斷線重連後
+- Query historical orders 查詢歷史訂單
+- When callback missed 回報遺漏時
 
 ```python
-@api.on_order_callback
-def order_callback(stat, msg):
-    if stat == sj.constant.OrderState.TFTDeal:
-        print(f"Deal: {msg}")
+# Query specific trade only 僅查詢特定訂單
+api.update_status(trade=trade)
+
+# Or query all (use sparingly) 或查詢全部（謹慎使用）
+api.update_status(api.stock_account)
 ```
 
 ### 3. Handle Errors Gracefully 優雅處理錯誤
@@ -563,4 +681,3 @@ try:
     trade = api.place_order(contract, order)
 except Exception as e:
     print(f"Order error: {e}")
-```
