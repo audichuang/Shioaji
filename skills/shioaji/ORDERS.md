@@ -237,6 +237,112 @@ trade = api.place_order(contract, order)
 
 ---
 
+## Combo Orders 組合單
+
+Combo orders allow trading multi-leg option strategies (spreads, straddles, strangles).
+組合單可交易多腳選擇權策略（價差、跨式、勒式等）。
+
+### Create Combo Contract 建立組合合約
+
+```python
+from shioaji.contracts import ComboContract, ComboBase
+
+# Bull Call Spread 買權多頭價差
+# Buy lower strike, Sell higher strike
+# 買進較低履約價，賣出較高履約價
+combo_contract = ComboContract(
+    legs=[
+        ComboBase(
+            action=sj.constant.Action.Buy,
+            contract=api.Contracts.Options["TXO202401C18000"],
+        ),
+        ComboBase(
+            action=sj.constant.Action.Sell,
+            contract=api.Contracts.Options["TXO202401C18500"],
+        ),
+    ]
+)
+```
+
+### Place Combo Order 下組合單
+
+```python
+combo_order = api.ComboOrder(
+    price=50,  # Net price 淨價
+    quantity=1,
+    price_type=sj.constant.FuturesPriceType.LMT,
+    order_type=sj.constant.OrderType.ROD,
+    octype=sj.constant.FuturesOCType.Auto,
+    account=api.futopt_account,
+)
+
+trade = api.place_comboorder(combo_contract, combo_order)
+```
+
+### Combo Order Parameters 組合單參數
+
+| Parameter 參數 | Type 類型 | Description 說明 |
+|----------------|-----------|------------------|
+| `price` | float | Net price of spread 價差淨價 |
+| `quantity` | int | Number of combos 組數 |
+| `price_type` | FuturesPriceType | LMT/MKT 限價/市價 |
+| `order_type` | OrderType | ROD/IOC/FOK 委託條件 |
+| `octype` | FuturesOCType | Auto/NewPosition/Cover 開平倉 |
+
+### Strategy Examples 策略範例
+
+```python
+# Straddle 跨式 (Buy Call + Buy Put same strike)
+straddle = ComboContract(
+    legs=[
+        ComboBase(
+            action=sj.constant.Action.Buy,
+            contract=api.Contracts.Options["TXO202401C18000"],
+        ),
+        ComboBase(
+            action=sj.constant.Action.Buy,
+            contract=api.Contracts.Options["TXO202401P18000"],
+        ),
+    ]
+)
+
+# Strangle 勒式 (Buy OTM Call + Buy OTM Put)
+strangle = ComboContract(
+    legs=[
+        ComboBase(
+            action=sj.constant.Action.Buy,
+            contract=api.Contracts.Options["TXO202401C18500"],
+        ),
+        ComboBase(
+            action=sj.constant.Action.Buy,
+            contract=api.Contracts.Options["TXO202401P17500"],
+        ),
+    ]
+)
+```
+
+### Combo Status 組合單狀態
+
+```python
+# Update combo status 更新組合單狀態
+api.update_combostatus(api.futopt_account)
+
+# List all combo trades 列出所有組合單
+combo_trades = api.list_combotrades()
+
+for trade in combo_trades:
+    print(f"Order ID: {trade.order.id}")
+    print(f"Status: {trade.status.status}")
+```
+
+### Cancel Combo Order 取消組合單
+
+```python
+api.cancel_comboorder(trade)
+```
+
+---
+
 ## Modify Orders 改單
 
 ### Change Price 改價
@@ -337,6 +443,92 @@ msg["operation"]    # Operation type 操作類型
 msg["order"]        # Order info 訂單資訊
 msg["status"]       # Status info 狀態資訊
 msg["contract"]     # Contract info 合約資訊
+```
+
+---
+
+## Reserve Orders 預收券款
+
+For stocks under disposition (處置股), attention (注意股), or warning (警示股), you must reserve shares before trading.
+處置股、注意股或警示股在交易前須預收券款。
+
+### Query Reserve Summary 查詢預收券款狀態
+
+```python
+# Get reserve summary 取得預收券款摘要
+reserve_summary = api.stock_reserve_summary(api.stock_account)
+
+for stock in reserve_summary.response.stocks:
+    print(f"Code: {stock.contract.code}")
+    print(f"Available: {stock.available_share}")
+    print(f"Reserved: {stock.reserved_share}")
+```
+
+### Reserve Stock 預收股票
+
+```python
+contract = api.Contracts.Stocks["2890"]
+
+# Reserve 1000 shares 預收 1000 股
+resp = api.reserve_stock(api.stock_account, contract, 1000)
+
+print(f"Status: {resp.response.status}")
+print(f"Share: {resp.response.share}")
+```
+
+### Query Reserve Detail 查詢預收明細
+
+```python
+detail = api.stock_reserve_detail(api.stock_account)
+
+for stock in detail.response.stocks:
+    print(f"Code: {stock.contract.code}")
+    print(f"Share: {stock.share}")
+    print(f"Status: {stock.status}")
+    print(f"Info: {stock.info}")
+```
+
+### Reserve Earmarking 預收款項
+
+For pre-payment of cash:
+現金預收款項：
+
+```python
+contract = api.Contracts.Stocks["2890"]
+
+# Reserve with price 預收並指定價格
+resp = api.reserve_earmarking(api.stock_account, contract, 1000, 15.15)
+
+print(f"Amount: {resp.response.amount}")
+print(f"Status: {resp.response.status}")
+```
+
+### Query Earmarking Detail 查詢預收款項明細
+
+```python
+detail = api.earmarking_detail(api.stock_account)
+
+for stock in detail.response.stocks:
+    print(f"Code: {stock.contract.code}")
+    print(f"Share: {stock.share}")
+    print(f"Price: {stock.price}")
+    print(f"Amount: {stock.amount}")
+```
+
+### Reserve All Available 全部預收
+
+```python
+# Reserve all available shares 預收所有可用股票
+reserve_summary = api.stock_reserve_summary(api.stock_account)
+
+for stock in reserve_summary.response.stocks:
+    if stock.available_share > 0:
+        resp = api.reserve_stock(
+            api.stock_account,
+            stock.contract,
+            stock.available_share
+        )
+        print(f"Reserved {stock.contract.code}: {resp.response.status}")
 ```
 
 ---

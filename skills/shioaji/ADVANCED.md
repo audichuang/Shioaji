@@ -64,6 +64,131 @@ All these functions support `timeout=0` for non-blocking:
 
 ---
 
+## Quote Binding 報價綁定
+
+Quote binding mode allows you to store tick/bidask in queue, push to Redis, or trigger stop orders.
+報價綁定模式讓你可以將 tick/bidask 存入佇列、推送到 Redis 或觸發觸價單。
+
+### Set Context 設定 Context
+
+```python
+from collections import defaultdict, deque
+from shioaji import Exchange, TickSTKv1
+
+# Create message queue 建立訊息佇列
+msg_queue = defaultdict(deque)
+
+# Set context 設定 context
+api.set_context(msg_queue)
+```
+
+### Use bind=True 使用 bind=True
+
+```python
+# Method 1: Decorator with bind=True
+# 方法一：使用 bind=True 裝飾器
+@api.on_tick_stk_v1(bind=True)
+def quote_callback(self, exchange: Exchange, tick: TickSTKv1):
+    # 'self' is the context (msg_queue)
+    # 'self' 就是 context (msg_queue)
+    self[tick.code].append(tick)
+
+# Method 2: Traditional way
+# 方法二：傳統方式
+def quote_callback(self, exchange: Exchange, tick: TickSTKv1):
+    self[tick.code].append(tick)
+
+api.quote.set_on_tick_stk_v1_callback(quote_callback, bind=True)
+```
+
+### Push to Redis Stream 推送到 Redis
+
+```python
+import redis
+import json
+from shioaji import Exchange, TickFOPv1
+
+# Redis connection Redis 連線
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+# Set Redis as context 設定 Redis 為 context
+api.set_context(r)
+
+@api.on_tick_fop_v1(bind=True)
+def quote_callback(self, exchange: Exchange, tick: TickFOPv1):
+    channel = f"Q:{tick.code}"
+    # Push to Redis stream 推送到 Redis stream
+    self.xadd(channel, {'tick': json.dumps(tick.to_dict(raw=True))})
+```
+
+### Quote Manager Pattern 報價管理器模式
+
+```python
+from typing import List
+import polars as pl
+from shioaji import TickSTKv1, Exchange
+
+class QuoteManager:
+    def __init__(self, api):
+        self.api = api
+        self.ticks: List[TickSTKv1] = []
+        # Register callback 註冊回調
+        api.quote.set_on_tick_stk_v1_callback(self._on_tick)
+
+    def _on_tick(self, exchange: Exchange, tick: TickSTKv1):
+        self.ticks.append(tick)
+
+    def get_dataframe(self) -> pl.DataFrame:
+        if not self.ticks:
+            return pl.DataFrame()
+
+        return pl.DataFrame([t.to_dict() for t in self.ticks]).select(
+            pl.col("datetime", "code"),
+            pl.col("close").cast(pl.Float64).alias("price"),
+            pl.col("volume").cast(pl.Int64),
+            pl.col("tick_type").cast(pl.Int8),
+        )
+
+    def get_kbars(self, unit: str = "1m") -> pl.DataFrame:
+        df = self.get_dataframe()
+        if df.is_empty():
+            return df
+
+        return df.group_by(
+            pl.col("datetime").dt.truncate(unit),
+            pl.col("code"),
+            maintain_order=True,
+        ).agg(
+            pl.col("price").first().alias("open"),
+            pl.col("price").max().alias("high"),
+            pl.col("price").min().alias("low"),
+            pl.col("price").last().alias("close"),
+            pl.col("volume").sum().alias("volume"),
+        )
+
+# Usage 使用方式
+qm = QuoteManager(api)
+api.quote.subscribe(api.Contracts.Stocks["2330"], "tick")
+
+# Later... 稍後...
+df = qm.get_kbars("5m")
+```
+
+### With Technical Indicators 搭配技術指標
+
+```python
+import polars_talib as plta
+
+# Get kbars with indicators 取得帶指標的 K 線
+df = qm.get_kbars("5m").with_columns([
+    pl.col("close").ta.ema(5).over("code").alias("ema5"),
+    pl.col("close").ta.ema(20).over("code").alias("ema20"),
+    plta.macd(pl.col("close"), 12, 26, 9).over("code").struct.field("macd"),
+])
+```
+
+---
+
 ## Stop Orders 觸價委託
 
 Stop orders automatically convert to limit/market orders when price reaches trigger level.

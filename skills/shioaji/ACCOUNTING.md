@@ -253,6 +253,56 @@ settle.t2_money       # Decimal: T+2 amount T+2 日金額
 
 ---
 
+## Trading Limits 交易額度
+
+Query available trading limits for stock account.
+查詢股票帳戶的交易額度。
+
+Note: Available on trading days from 8:30 to 15:00.
+注意：交易日 8:30 至 15:00 可查詢。
+
+### Query Trading Limits 查詢交易額度
+
+```python
+limits = api.trading_limits(api.stock_account)
+
+print(f"Trading Limit: {limits.trading_limit}")
+print(f"Trading Used: {limits.trading_used}")
+print(f"Trading Available: {limits.trading_available}")
+```
+
+### TradingLimits Attributes 交易額度屬性
+
+```python
+limits.status             # FetchStatus: Fetch status 取得狀態
+limits.trading_limit      # int: Trading limit 交易額度上限
+limits.trading_used       # int: Trading used 已使用額度
+limits.trading_available  # int: Trading available 可用額度
+
+# Margin trading 融資
+limits.margin_limit       # int: Margin limit 融資額度上限
+limits.margin_used        # int: Margin used 已使用融資
+limits.margin_available   # int: Margin available 可用融資
+
+# Short selling 融券
+limits.short_limit        # int: Short limit 融券額度上限
+limits.short_used         # int: Short used 已使用融券
+limits.short_available    # int: Short available 可用融券
+```
+
+### Check Available Margin 檢查可用額度
+
+```python
+limits = api.trading_limits(api.stock_account)
+
+if limits.trading_available >= order_amount:
+    print("Sufficient trading limit")
+else:
+    print(f"Insufficient! Available: {limits.trading_available}")
+```
+
+---
+
 ## Query with Polars 使用 Polars 查詢
 
 ### Positions to DataFrame 持倉轉 DataFrame
