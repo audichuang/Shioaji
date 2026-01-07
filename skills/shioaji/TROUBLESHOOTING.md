@@ -101,14 +101,6 @@ Event().wait()
    - Specify account: `api.update_status(api.stock_account)`
    - `update_status()` 預設查詢所有帳號，請指定帳號
 
-### Password locked 密碼鎖定
-
-If you enter wrong password 3 times:
-輸入錯誤密碼 3 次後：
-
-- Online unlock: https://www.sinotrade.com.tw/newweb/Service_ForgetPassword_Self/
-- Note: Only 2 unlock attempts per day 每天只能線上解鎖 2 次
-
 ---
 
 ## Environment 環境設定
