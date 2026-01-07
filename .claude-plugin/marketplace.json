@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "shioaji",
-      "source": ".",
+      "source": "./",
       "description": "Shioaji Taiwan financial trading API guide for stocks, futures, and options trading",
       "version": "1.0.0",
       "author": {
