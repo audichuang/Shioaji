@@ -1,0 +1,23 @@
+{
+  "name": "shioaji",
+  "version": "1.0.0",
+  "description": "Shioaji Taiwan financial trading API guide. Provides comprehensive documentation for stocks, futures, and options trading with real-time market data.",
+  "author": {
+    "name": "Sinotrade",
+    "url": "https://github.com/Sinotrade"
+  },
+  "homepage": "https://sinotrade.github.io/",
+  "repository": "https://github.com/Sinotrade/Shioaji",
+  "license": "MIT",
+  "keywords": [
+    "shioaji",
+    "trading",
+    "taiwan",
+    "stocks",
+    "futures",
+    "options",
+    "sinopac",
+    "api"
+  ],
+  "skills": "./skills/"
+}

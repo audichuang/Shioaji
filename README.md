@@ -16,6 +16,7 @@ Shioaji is a trading API provided by Sinopac that offers a comprehensive and use
 - [Installation](#installation)
     - [Binaries](#binaries)
     - [Docker Image](#docker-image)
+    - [Claude Code Plugin](#claude-code-plugin)
 - [Quickstarts](#quickstarts)
 - [Communication](#communication)
 - [Releases and Contributing](#releases-and-contributing)
@@ -45,15 +46,33 @@ uv add shioaji --extra speed
 ```
 
 ### Docker Image
-simple run with interactive mode in docker 
+simple run with interactive mode in docker
 ```
 docker run -it sinotrade/shioaji:latest
 ```
-run with jupyter lab or notebook 
+run with jupyter lab or notebook
 ```
 docker run -p 8888:8888 sinotrade/shioaji:jupyter
 ```
 
+### Claude Code Plugin
+Install Shioaji skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) to get AI-assisted guidance on using the Shioaji API.
+
+```bash
+# Add the Sinotrade marketplace
+claude plugin marketplace add Sinotrade/Shioaji
+
+# Install the shioaji plugin
+claude plugin install shioaji
+```
+
+The plugin provides comprehensive documentation for:
+- Login & authentication
+- Stock/Futures/Options contracts
+- Order placement and management
+- Real-time market data streaming
+- Account balance and positions
+- Historical data and K-bars
 
 ## [Quickstarts](https://sinotrade.github.io/quickstart/)
 ## Initialization
