@@ -12,16 +12,33 @@
 
 Shioaji is a trading API provided by Sinopac that offers a comprehensive and user-friendly platform for accessing the Taiwan financial markets. With Shioaji, you can trade a variety of financial instruments including stocks, futures, and options using your favorite Python packages such as numpy, scipy, pandas, pytorch, or tensorflow to build your own custom trading models. The platform is easy to use and intuitive, with advanced charting tools, real-time market data, and a customizable interface that allows you to tailor your trading experience to your specific needs. Shioaji is fast and efficient, with a high-performance core implemented in C++ and using FPGA event broker technology, and it is the first Python trading API in Taiwan that is compatible with Linux and Mac, making it a truly cross-platform solution. Whether you are a beginner looking to get started in the world of trading or an experienced trader looking for a more powerful platform, Shioaji has something to offer. [Sign up for a free account today and start trading with confidence.](https://sinotrade.github.io/tutor/prepare/open_account)
 
+> ✨ **First Taiwan trading API with AI coding agent skill support** — [Claude Code & Codex CLI](#ai-coding-agent-skills)
 
+- [AI Coding Agent Skills](#ai-coding-agent-skills)
 - [Installation](#installation)
     - [Binaries](#binaries)
     - [Docker Image](#docker-image)
-    - [AI Coding Agent Skills](#ai-coding-agent-skills)
 - [Quickstarts](#quickstarts)
 - [Communication](#communication)
 - [Releases and Contributing](#releases-and-contributing)
 - [The Team](#the-team)
 
+
+## AI Coding Agent Skills
+
+Shioaji is the **first Taiwan trading API with AI coding agent skill support**. Get AI-assisted guidance on using the Shioaji API.
+
+#### Claude Code
+```bash
+claude plugin marketplace add Sinotrade/Shioaji
+claude plugin install shioaji
+```
+
+#### OpenAI Codex CLI
+In a Codex session, use the skill-installer:
+```
+$skill-installer install shioaji from Sinotrade/Shioaji --path skills/shioaji
+```
 
 ## Installation
 ### Binaries
@@ -54,29 +71,6 @@ run with jupyter lab or notebook
 ```
 docker run -p 8888:8888 sinotrade/shioaji:jupyter
 ```
-
-### AI Coding Agent Skills
-Install Shioaji skill for AI coding agents to get AI-assisted guidance on using the Shioaji API.
-
-#### Claude Code
-```bash
-claude plugin marketplace add Sinotrade/Shioaji
-claude plugin install shioaji
-```
-
-#### OpenAI Codex CLI
-In a Codex session, use the skill-installer:
-```
-$skill-installer install shioaji from Sinotrade/Shioaji --path skills/shioaji
-```
-
-The skill provides comprehensive documentation for:
-- Login & authentication
-- Stock/Futures/Options contracts
-- Order placement and management
-- Real-time market data streaming
-- Account balance and positions
-- Historical data and K-bars
 
 ## [Quickstarts](https://sinotrade.github.io/quickstart/)
 ## Initialization
