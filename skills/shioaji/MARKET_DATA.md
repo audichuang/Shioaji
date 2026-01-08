@@ -1,7 +1,188 @@
 # Market Data 市場資料
 
-This document covers credit enquiries, short stock sources, and scanners.
-本文件說明資券餘額查詢、券源查詢和掃描器排行。
+This document covers historical data, snapshots, credit enquiries, short stock sources, scanners, and disposition/attention stocks.
+本文件說明歷史資料查詢、快照、資券餘額查詢、券源查詢、掃描器排行及處置/注意股。
+
+---
+
+## Historical Ticks 歷史 Tick 資料
+
+Query historical tick data by date, time range, or last count.
+依日期、時間區間或筆數查詢歷史逐筆資料。
+
+### By Date 依日期
+
+```python
+ticks = api.ticks(
+    contract=api.Contracts.Stocks["2330"],
+    date="2023-01-16"
+)
+```
+
+### By Time Range 依時間區間
+
+```python
+import shioaji as sj
+
+ticks = api.ticks(
+    contract=api.Contracts.Stocks["2330"],
+    date="2023-01-16",
+    query_type=sj.constant.TicksQueryType.RangeTime,
+    time_start="09:00:00",
+    time_end="09:20:01"
+)
+```
+
+### Last Count 最後 N 筆
+
+```python
+ticks = api.ticks(
+    contract=api.Contracts.Stocks["2330"],
+    date="2023-01-16",
+    query_type=sj.constant.TicksQueryType.LastCount,
+    last_cnt=100,
+)
+```
+
+### Ticks Attributes Tick 屬性
+
+```python
+ticks.ts          # List[int]: Timestamps 時間戳
+ticks.close       # List[float]: Close prices 成交價
+ticks.volume      # List[int]: Volumes 成交量
+ticks.bid_price   # List[float]: Bid prices 買價
+ticks.bid_volume  # List[int]: Bid volumes 買量
+ticks.ask_price   # List[float]: Ask prices 賣價
+ticks.ask_volume  # List[int]: Ask volumes 賣量
+ticks.tick_type   # List[int]: 1=外盤, 2=內盤, 0=無法判定
+```
+
+### Convert to Polars 轉換為 Polars
+
+```python
+import polars as pl
+
+df = pl.DataFrame({**ticks}).with_columns(
+    pl.col("ts").cast(pl.Datetime("ns"))
+)
+```
+
+---
+
+## Historical KBars 歷史 K 棒
+
+Query historical 1-minute K-bar data.
+查詢歷史 1 分鐘 K 棒資料。
+
+```python
+kbars = api.kbars(
+    contract=api.Contracts.Stocks["2330"],
+    start="2023-01-15",
+    end="2023-01-16",
+)
+```
+
+### KBars Attributes K 棒屬性
+
+```python
+kbars.ts      # List[int]: Timestamps 時間戳
+kbars.Open    # List[float]: Open prices 開盤價
+kbars.High    # List[float]: High prices 最高價
+kbars.Low     # List[float]: Low prices 最低價
+kbars.Close   # List[float]: Close prices 收盤價
+kbars.Volume  # List[int]: Volumes 成交量
+```
+
+### Convert to Polars 轉換為 Polars
+
+```python
+import polars as pl
+
+df = pl.DataFrame({**kbars}).with_columns(
+    pl.col("ts").cast(pl.Datetime("ns"))
+)
+```
+
+---
+
+## Continuous Futures 連續期貨
+
+For historical data of expired futures, use continuous contracts `R1` (near-month) and `R2` (next-to-near-month).
+查詢已過期期貨的歷史資料，使用連續合約 `R1`（近月）和 `R2`（次近月）。
+
+```python
+# Continuous near-month futures 連續近月期貨
+ticks = api.ticks(
+    contract=api.Contracts.Futures.TXF.TXFR1,
+    date="2023-01-16"
+)
+
+kbars = api.kbars(
+    contract=api.Contracts.Futures.TXF.TXFR1,
+    start="2023-01-15",
+    end="2023-01-16",
+)
+```
+
+### Historical Data Periods 歷史資料可查詢區間
+
+| Type 類型 | Start Date 起始日 |
+|-----------|-------------------|
+| Index 指數 | 2020-03-02 |
+| Stock 股票 | 2020-03-02 |
+| Futures 期貨 | 2020-03-22 |
+
+---
+
+## Snapshot 即時快照
+
+Get current snapshot for multiple contracts (max 500 per request).
+取得多個合約的當前快照（每次最多 500 個）。
+
+```python
+contracts = [
+    api.Contracts.Stocks["2330"],
+    api.Contracts.Stocks["2317"],
+]
+
+snapshots = api.snapshots(contracts)
+```
+
+### Snapshot Attributes 快照屬性
+
+```python
+snap.ts              # int: Timestamp 時間戳
+snap.code            # str: Stock code 股票代碼
+snap.exchange        # str: Exchange 交易所
+snap.open            # float: Open price 開盤價
+snap.high            # float: High price 最高價
+snap.low             # float: Low price 最低價
+snap.close           # float: Close price 收盤價
+snap.tick_type       # TickType: Buy/Sell 內外盤
+snap.change_price    # float: Price change 漲跌價
+snap.change_rate     # float: Change rate % 漲跌幅
+snap.change_type     # ChangeType: Up/Down/Unchanged/LimitUp/LimitDown
+snap.average_price   # float: Average price 均價
+snap.volume          # int: Last volume 最後成交量
+snap.total_volume    # int: Total volume 總成交量
+snap.amount          # int: Last amount 最後成交金額
+snap.total_amount    # int: Total amount 總成交金額
+snap.yesterday_volume # float: Yesterday volume 昨日成交量
+snap.buy_price       # float: Bid price 買價
+snap.buy_volume      # float: Bid volume 買量
+snap.sell_price      # float: Ask price 賣價
+snap.sell_volume     # int: Ask volume 賣量
+snap.volume_ratio    # float: Volume ratio 量比
+```
+
+### Convert to Polars 轉換為 Polars
+
+```python
+import polars as pl
+
+# Use BaseModel.dict() to convert 使用 BaseModel.dict() 轉換
+df = pl.DataFrame([s.dict() for s in snapshots])
+```
 
 ---
 
@@ -34,16 +215,8 @@ enquire.short_unit    # int: Short units 融券餘額
 ```python
 import polars as pl
 
-df = pl.DataFrame([
-    {
-        "stock_id": c.stock_id,
-        "system": c.system,
-        "margin_unit": c.margin_unit,
-        "short_unit": c.short_unit,
-        "update_time": c.update_time,
-    }
-    for c in credit_enquires
-])
+# Use BaseModel.dict() to convert 使用 BaseModel.dict() 轉換
+df = pl.DataFrame([c.dict() for c in credit_enquires])
 ```
 
 ---
@@ -75,14 +248,8 @@ source.ts                 # int: Timestamp 時間戳
 ```python
 import polars as pl
 
-df = pl.DataFrame([
-    {
-        "code": s.code,
-        "short_stock_source": s.short_stock_source,
-        "ts": s.ts,
-    }
-    for s in short_sources
-]).with_columns(
+# Use BaseModel.dict() to convert 使用 BaseModel.dict() 轉換
+df = pl.DataFrame([s.dict() for s in short_sources]).with_columns(
     pl.col("ts").cast(pl.Datetime("ns"))
 )
 ```
@@ -173,17 +340,8 @@ scanners = api.scanners(
     count=50,
 )
 
-df = pl.DataFrame([
-    {
-        "code": s.code,
-        "name": s.name,
-        "close": s.close,
-        "change_price": s.change_price,
-        "total_volume": s.total_volume,
-        "volume_ratio": s.volume_ratio,
-    }
-    for s in scanners
-])
+# Use BaseModel.dict() to convert 使用 BaseModel.dict() 轉換
+df = pl.DataFrame([s.dict() for s in scanners])
 
 # Filter high volume ratio 篩選量比高的
 high_volume = df.filter(pl.col("volume_ratio") > 2)
@@ -191,20 +349,77 @@ high_volume = df.filter(pl.col("volume_ratio") > 2)
 
 ---
 
-## Disposition & Attention Stocks 處置及注意股
+## Disposition Stocks 處置股
 
-Query disposition and attention stocks list.
-查詢處置股及注意股清單。
+Query stocks under trading restrictions (處置股).
+查詢受交易限制的處置股清單。
 
-For detailed information, see the official documentation:
-詳細資訊請參考官方文檔：
+```python
+punish = api.punish()
+```
 
-https://sinotrade.github.io/tutor/market_data/disposition_attention/
+### Punish Attributes 處置股屬性
+
+```python
+punish.code            # List[str]: Stock codes 股票代碼
+punish.start_date      # List[date]: Disposition start date 處置開始日
+punish.end_date        # List[date]: Disposition end date 處置結束日
+punish.updated_at      # List[datetime]: Updated time 更新時間
+punish.interval        # List[str]: Matching interval 撮合間隔 (e.g., "5分鐘")
+punish.unit_limit      # List[float]: Single order limit % 單筆限額
+punish.total_limit     # List[float]: Daily order limit % 每日限額
+punish.description     # List[str]: Description 說明
+punish.announced_date  # List[date]: Announced date 公告日
+```
+
+### Convert to Polars 轉換為 Polars
+
+```python
+import polars as pl
+
+# Punish returns single object with list attributes
+# Punish 回傳單一物件，屬性為 list
+df = pl.DataFrame(punish.dict())
+```
+
+---
+
+## Attention Stocks 注意股
+
+Query stocks under attention (注意股).
+查詢受注意的股票清單。
+
+```python
+notice = api.notice()
+```
+
+### Notice Attributes 注意股屬性
+
+```python
+notice.code            # List[str]: Stock codes 股票代碼
+notice.updated_at      # List[datetime]: Updated time 更新時間
+notice.close           # List[float]: Close price 收盤價
+notice.reason          # List[str]: Attention reason 注意原因
+notice.announced_date  # List[date]: Announced date 公告日
+```
+
+### Convert to Polars 轉換為 Polars
+
+```python
+import polars as pl
+
+# Notice returns single object with list attributes
+# Notice 回傳單一物件，屬性為 list
+df = pl.DataFrame(notice.dict())
+```
 
 ---
 
 ## Reference 參考資料
 
+- Historical data 歷史資料: https://sinotrade.github.io/tutor/market_data/historical/
+- Snapshot 快照: https://sinotrade.github.io/tutor/market_data/snapshot/
 - Credit enquiries 資券餘額: https://sinotrade.github.io/tutor/market_data/credit_enquires/
 - Short stock sources 券源: https://sinotrade.github.io/tutor/market_data/short_stock_source/
 - Scanners 掃描器: https://sinotrade.github.io/tutor/market_data/scanners/
+- Disposition/Attention 處置/注意股: https://sinotrade.github.io/tutor/market_data/disposition_attention/

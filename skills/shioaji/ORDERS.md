@@ -98,6 +98,9 @@ order = api.Order(
 )
 ```
 
+**Note 注意:** IntradayOdd orders cannot update price, only reduce quantity.
+盤中零股委託不能改價，只能減量。
+
 ### Margin Trading 融資融券
 
 ```python

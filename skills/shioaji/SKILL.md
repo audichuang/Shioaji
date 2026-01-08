@@ -24,7 +24,7 @@ Shioaji 是永豐金證券提供的 Python 交易 API，支援台灣股票、期
 | Orders 下單 | [ORDERS.md](ORDERS.md) | Place, modify, cancel, combo orders 下單/改單/刪單/組合單 |
 | Reserve 預收 | [RESERVE.md](RESERVE.md) | Reserve orders for disposition stocks 處置股預收券款 |
 | Streaming 行情 | [STREAMING.md](STREAMING.md) | Real-time tick & bidask data 即時 Tick/BidAsk 資料 |
-| Market Data 市場資料 | [MARKET_DATA.md](MARKET_DATA.md) | Credit, short sources, scanners 資券餘額/券源/掃描器 |
+| Market Data 市場資料 | [MARKET_DATA.md](MARKET_DATA.md) | Historical, snapshot, credit, scanners 歷史資料/快照/資券/掃描器 |
 | Accounting 帳務 | [ACCOUNTING.md](ACCOUNTING.md) | Balance, margin, P&L, trading limits 餘額/保證金/損益/額度 |
 | Advanced 進階 | [ADVANCED.md](ADVANCED.md) | Quote binding, non-blocking, stop orders 報價綁定/非阻塞/觸價 |
 | Troubleshooting 問題排解 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and solutions 常見問題與解決 |
@@ -68,6 +68,23 @@ api.activate_ca(
     ca_passwd="YOUR_CA_PASSWORD",
 )
 ```
+
+### Simulation Mode 模擬模式
+
+Test API without real money. 使用模擬環境測試 API。
+
+```python
+import shioaji as sj
+
+api = sj.Shioaji(simulation=True)
+api.login(api_key="YOUR_KEY", secret_key="YOUR_SECRET")
+```
+
+**Available in simulation 模擬模式可用功能:**
+- Quote: subscribe, unsubscribe, ticks, kbars, snapshots
+- Order: place_order, update_order, cancel_order, update_status, list_trades
+- Account: list_positions, list_profit_loss
+- Data: short_stock_sources, credit_enquires, scanners
 
 ### Simple Order Example 簡單下單範例
 
