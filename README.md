@@ -16,7 +16,7 @@ Shioaji is a trading API provided by Sinopac that offers a comprehensive and use
 - [Installation](#installation)
     - [Binaries](#binaries)
     - [Docker Image](#docker-image)
-    - [Claude Code Plugin](#claude-code-plugin)
+    - [AI Coding Agent Skills](#ai-coding-agent-skills)
 - [Quickstarts](#quickstarts)
 - [Communication](#communication)
 - [Releases and Contributing](#releases-and-contributing)
@@ -55,18 +55,22 @@ run with jupyter lab or notebook
 docker run -p 8888:8888 sinotrade/shioaji:jupyter
 ```
 
-### Claude Code Plugin
-Install Shioaji skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) to get AI-assisted guidance on using the Shioaji API.
+### AI Coding Agent Skills
+Install Shioaji skill for AI coding agents to get AI-assisted guidance on using the Shioaji API.
 
+#### Claude Code
 ```bash
-# Add the Sinotrade marketplace
 claude plugin marketplace add Sinotrade/Shioaji
-
-# Install the shioaji plugin
 claude plugin install shioaji
 ```
 
-The plugin provides comprehensive documentation for:
+#### OpenAI Codex CLI
+In a Codex session, use the skill-installer:
+```
+$skill-installer install shioaji from Sinotrade/Shioaji --path skills/shioaji
+```
+
+The skill provides comprehensive documentation for:
 - Login & authentication
 - Stock/Futures/Options contracts
 - Order placement and management
