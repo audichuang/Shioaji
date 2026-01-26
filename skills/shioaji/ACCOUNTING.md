@@ -28,9 +28,20 @@ import shioaji as sj
 api = sj.Shioaji()
 api.login(api_key="YOUR_KEY", secret_key="YOUR_SECRET")
 
-# Query balance 查詢餘額
+# Query balance (default: stock_account) 查詢餘額（預設：股票帳戶）
 balance = api.account_balance()
+
+# Query with specific account 指定帳戶查詢
+balance = api.account_balance(account=api.stock_account)
 ```
+
+### account_balance Parameters 參數
+
+| Parameter 參數 | Type 類型 | Description 說明 |
+|---------------|----------|------------------|
+| `account` | `Account` | Account to query (Default: stock_account) 查詢帳戶（預設：股票帳戶）|
+| `timeout` | `int` | Request timeout in ms (Default: 5000) 請求超時毫秒（預設：5000）|
+| `cb` | `Callable` | Callback for async mode 非同步回呼函數 |
 
 ### AccountBalance Attributes 餘額屬性
 
