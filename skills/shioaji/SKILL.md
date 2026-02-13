@@ -1,8 +1,8 @@
 ---
 name: shioaji
 description: |
-  Shioaji Taiwan financial trading API guide. Use when trading stocks/futures/options on Taiwan markets, subscribing to real-time market data, querying account info, or building automated trading systems.
-  Shioaji 台灣金融交易 API 指南。適用於：股票/期貨/選擇權交易、即時行情訂閱、帳務查詢、自動交易系統開發。
+  Shioaji (永豐金) Taiwan real-time trading & market data API. Use for: placing/modifying/canceling stock/futures/options orders, subscribing to real-time tick/bidask streaming quotes, querying account balance/margin/positions/P&L, managing contracts & watchlists, and building automated trading systems via SinoPac broker.
+  NOT for: historical fundamentals (EPS/revenue/financial statements), institutional investor chip data (三大法人/融資融券/股權分散), valuation metrics (PER/PBR), or macro economics — use the「querying-finmind」skill instead.
 ---
 
 # Shioaji Trading API
@@ -121,7 +121,6 @@ sj.constant.Action.Sell  # 賣出
 ```python
 sj.constant.StockPriceType.LMT  # Limit 限價
 sj.constant.StockPriceType.MKT  # Market 市價
-sj.constant.StockPriceType.MKP  # Range Market 範圍市價
 ```
 
 ### Futures Price Type 期貨價格類型
@@ -141,6 +140,7 @@ sj.constant.OrderType.FOK  # Fill or Kill 全部成交否則取消
 ### Stock Order Lot 股票交易單位
 ```python
 sj.constant.StockOrderLot.Common      # Regular 整股 (1000 shares)
+sj.constant.StockOrderLot.BlockTrade  # Block trade 鉅額交易
 sj.constant.StockOrderLot.Odd         # After-hours odd lot 盤後零股
 sj.constant.StockOrderLot.IntradayOdd # Intraday odd lot 盤中零股
 sj.constant.StockOrderLot.Fixing      # Fixing 定盤
@@ -157,6 +157,27 @@ sj.constant.StockOrderCond.ShortSelling  # Short 融券
 ```python
 sj.constant.QuoteType.Tick    # Tick data 逐筆成交
 sj.constant.QuoteType.BidAsk  # Bid/Ask data 五檔報價
+sj.constant.QuoteType.Quote   # Combined quote 整合報價
+```
+
+### Futures OC Type 期貨新平倉
+```python
+sj.constant.FuturesOCType.Auto      # Auto 自動
+sj.constant.FuturesOCType.New       # New position 新倉
+sj.constant.FuturesOCType.Cover     # Cover position 平倉
+sj.constant.FuturesOCType.DayTrade  # Day trade 當沖
+```
+
+### Order Status 委託狀態
+```python
+sj.constant.Status.PendingSubmit  # 傳送中
+sj.constant.Status.PreSubmitted   # 預約送出
+sj.constant.Status.Submitted      # 已送出
+sj.constant.Status.PartFilled     # 部分成交
+sj.constant.Status.Filled         # 完全成交
+sj.constant.Status.Cancelled      # 已取消
+sj.constant.Status.Failed         # 失敗
+sj.constant.Status.Inactive       # 未啟用
 ```
 
 ---
@@ -260,3 +281,19 @@ for trade in api.list_trades():
 ```python
 api.logout()
 ```
+
+---
+
+## Out of Scope 不在本 Skill 範圍
+
+The following are **NOT** available in Shioaji:
+以下功能 Shioaji **不提供**：
+
+- Historical fundamentals (EPS, revenue, financial statements, balance sheet, cash flow) 歷史基本面
+- Institutional investor chip data (三大法人買賣超, 融資融券, 股權分散表, 八大行庫, 分點進出) 法人籌碼
+- Valuation metrics (PER, PBR, dividend yield history) 估值指標
+- Macro economics (景氣指標, 恐懼貪婪指數) 總體經濟
+- Adjusted historical prices for backtesting 還原權值歷史價格
+
+**Use the `querying-finmind` skill for these tasks.**
+**請使用 `querying-finmind` skill 查詢以上資料。**

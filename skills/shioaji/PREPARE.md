@@ -183,14 +183,37 @@ uv run --with jupyter jupyter lab
 
 ## Environment Variables 環境變數設定
 
-### Using .env File 使用 .env 檔案
+### Doppler (Recommended 推薦)
+
+Secrets are managed centrally via [Doppler](https://doppler.com). No local `.env` files needed.
+密鑰透過 Doppler 集中管理，不需要本地 `.env` 檔案。
+
+```bash
+# 確認是否已登入
+doppler me
+
+# 如果未登入，執行登入（Mac 或 Ubuntu VM 都一樣，只需一次）
+doppler login
+
+# 執行程式（secrets 自動注入為環境變數）
+doppler run -p shioaji -c dev -- python my_trading_bot.py
+```
+
+```python
+import os
+
+api_key = os.environ["SHIOAJI_API_KEY"]
+secret_key = os.environ["SHIOAJI_SECRET_KEY"]
+```
+
+### Using .env File (Legacy 舊方式)
 
 Create `.env` file in project root:
 在專案根目錄建立 `.env` 檔案：
 
 ```
-API_KEY=your_api_key
-SECRET_KEY=your_secret_key
+SHIOAJI_API_KEY=your_api_key
+SHIOAJI_SECRET_KEY=your_secret_key
 CA_CERT_PATH=/path/to/Sinopac.pfx
 CA_PASSWORD=your_ca_password
 ```
@@ -203,8 +226,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.environ["API_KEY"]
-secret_key = os.environ["SECRET_KEY"]
+api_key = os.environ["SHIOAJI_API_KEY"]
+secret_key = os.environ["SHIOAJI_SECRET_KEY"]
 ca_path = os.environ["CA_CERT_PATH"]
 ca_password = os.environ["CA_PASSWORD"]
 ```
@@ -383,6 +406,32 @@ api.login(
     api_key=os.environ["API_KEY"],
     secret_key=os.environ["SECRET_KEY"],
 )
+```
+
+---
+
+## CA Certificate Management 憑證管理
+
+### Check CA Expiry 查詢憑證到期時間
+
+```python
+expire_time = api.get_ca_expiretime(person_id="YOUR_PERSON_ID")
+print(f"CA expires at: {expire_time}")
+```
+
+---
+
+## Trade Subscription 交易回報訂閱
+
+Control trade report subscription per account.
+控制各帳戶的交易回報訂閱。
+
+```python
+# Subscribe trade reports 訂閱交易回報（登入時預設已訂閱）
+api.subscribe_trade(api.stock_account)
+
+# Unsubscribe trade reports 取消訂閱交易回報
+api.unsubscribe_trade(api.stock_account)
 ```
 
 ---

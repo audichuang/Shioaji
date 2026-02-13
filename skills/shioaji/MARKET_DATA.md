@@ -105,6 +105,47 @@ df = pl.DataFrame({**kbars}).with_columns(
 
 ---
 
+## Daily Quotes 每日行情總表
+
+Get all market quotes for a specific date (excludes warrants by default).
+取得指定日期的全市場行情（預設排除權證）。
+
+```python
+import datetime as dt
+
+# Today's quotes 今日行情
+daily = api.daily_quotes(date=dt.date.today())
+
+# Specific date 指定日期
+daily = api.daily_quotes(date=dt.date(2024, 1, 16))
+
+# Include warrants 包含權證
+daily = api.daily_quotes(date=dt.date.today(), exclude=False)
+```
+
+### DailyQuotes Attributes 每日行情屬性
+
+```python
+daily.date        # List[str]: Trade dates 交易日
+daily.code        # List[str]: Stock codes 股票代碼
+daily.name        # List[str]: Stock names 股票名稱
+daily.open        # List[Decimal]: Open prices 開盤價
+daily.high        # List[Decimal]: High prices 最高價
+daily.low         # List[Decimal]: Low prices 最低價
+daily.close       # List[Decimal]: Close prices 收盤價
+daily.volume      # List[int]: Volumes 成交量
+```
+
+### Convert to Polars 轉換為 Polars
+
+```python
+import polars as pl
+
+df = pl.DataFrame(daily.dict())
+```
+
+---
+
 ## Continuous Futures 連續期貨
 
 For historical data of expired futures, use continuous contracts `R1` (near-month) and `R2` (next-to-near-month).
@@ -271,6 +312,7 @@ sj.constant.ScannerType.ChangePriceRank    # 漲跌價排行
 sj.constant.ScannerType.DayRangeRank       # 振幅排行
 sj.constant.ScannerType.VolumeRank         # 成交量排行
 sj.constant.ScannerType.AmountRank         # 成交金額排行
+sj.constant.ScannerType.TickCountRank      # 成交筆數排行
 ```
 
 ### Query Scanners 查詢排行

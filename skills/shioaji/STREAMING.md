@@ -23,6 +23,8 @@ from shioaji import (
     BidAskSTKv1,    # Stock bidask 股票五檔
     TickFOPv1,      # Futures/Options tick 期貨選擇權逐筆
     BidAskFOPv1,    # Futures/Options bidask 期貨選擇權五檔
+    QuoteSTKv1,     # Stock combined quote 股票整合報價
+    QuoteFOPv1,     # Futures/Options combined quote 期貨選擇權整合報價
 )
 ```
 
@@ -284,6 +286,43 @@ def event_callback(resp_code: int, event_code: int, info: str, event: str):
 | 4 | Reconnected 重新連線成功 |
 | 16 | Subscribe success 訂閱成功 |
 | 17 | Unsubscribe success 取消訂閱成功 |
+
+### Session Down Callback 連線中斷回調
+
+```python
+@api.on_session_down
+def on_session_down():
+    print("Session down! Reconnecting...")
+    # Handle reconnection logic 處理重連邏輯
+```
+
+---
+
+## Combined Quote Callback 整合報價回調
+
+Subscribe with `QuoteType.Quote` and use `QuoteSTKv1`/`QuoteFOPv1` callbacks.
+使用 `QuoteType.Quote` 訂閱，搭配 `QuoteSTKv1`/`QuoteFOPv1` 回調。
+
+```python
+from shioaji import Exchange, QuoteSTKv1, QuoteFOPv1
+import shioaji as sj
+
+# Subscribe combined quote 訂閱整合報價
+api.quote.subscribe(
+    api.Contracts.Stocks["2330"],
+    quote_type=sj.constant.QuoteType.Quote
+)
+
+# Stock combined quote callback 股票整合報價回調
+@api.on_quote_stk_v1()
+def on_quote_stk(exchange: Exchange, quote: QuoteSTKv1):
+    print(f"Code: {quote.code}, Close: {quote.close}")
+
+# Futures combined quote callback 期貨整合報價回調
+@api.on_quote_fop_v1()
+def on_quote_fop(exchange: Exchange, quote: QuoteFOPv1):
+    print(f"Code: {quote.code}, Close: {quote.close}")
+```
 
 ---
 

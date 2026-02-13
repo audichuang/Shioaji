@@ -14,7 +14,13 @@ This document covers account balance, margin, positions, and P&L queries.
 | `list_positions()` | Unrealized positions 未實現持倉 |
 | `list_position_detail()` | Position details 持倉明細 |
 | `list_profit_loss()` | Realized P&L 已實現損益 |
+| `list_profit_loss_summary()` | P&L summary 損益彙總 |
+| `list_profit_loss_detail()` | P&L detail 損益明細 |
+| `order_deal_records()` | Order & deal records 委託成交記錄 |
 | `settlements()` | Settlement schedule 交割資訊 |
+| `trading_limits()` | Trading limits 交易額度 |
+| `usage()` | API usage status API 流量狀態 |
+| `set_default_account()` | Set default account 設定預設帳戶 |
 
 ---
 
@@ -364,6 +370,52 @@ by_stock = df.group_by("code").agg([
     pl.col("pnl").count().alias("trade_count"),
     pl.col("pr_ratio").mean().alias("avg_return"),
 ])
+```
+
+---
+
+## Order Deal Records 委託成交記錄
+
+Query order and deal records for the current session.
+查詢當日委託與成交記錄。
+
+```python
+records = api.order_deal_records(account=api.stock_account)
+
+for record in records:
+    print(record)
+```
+
+---
+
+## API Usage 流量使用狀態
+
+Monitor API traffic usage to avoid rate limits.
+監控 API 流量使用情況，避免超過限制。
+
+```python
+usage = api.usage()
+
+usage.connections       # int: Current connections 目前連線數
+usage.remaining_bytes   # int: Remaining bytes 剩餘流量(bytes)
+usage.limit_bytes       # int: Daily limit bytes 每日流量上限(bytes)
+```
+
+---
+
+## Set Default Account 設定預設帳戶
+
+Set default account when you have multiple accounts.
+當你有多個帳戶時，設定預設帳戶。
+
+```python
+accounts = api.list_accounts()
+
+# Set stock default account 設定預設股票帳戶
+api.set_default_account(accounts[0])
+
+# Set futures default account 設定預設期貨帳戶
+api.set_default_account(accounts[1])
 ```
 
 ---
