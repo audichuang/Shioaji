@@ -1,8 +1,6 @@
 ---
 name: shioaji
-description: |
-  Shioaji (永豐金) Taiwan real-time trading & market data API. Use for: placing/modifying/canceling stock/futures/options orders, subscribing to real-time tick/bidask streaming quotes, querying account balance/margin/positions/P&L, managing contracts & watchlists, and building automated trading systems via SinoPac broker.
-  NOT for: historical fundamentals (EPS/revenue/financial statements), institutional investor chip data (三大法人/融資融券/股權分散), valuation metrics (PER/PBR), or macro economics — use the「querying-finmind」skill instead.
+description: "Shioaji (永豐金) Taiwan real-time trading & market data API. Use for: placing/modifying/canceling stock/futures/options orders, subscribing to real-time tick/bidask streaming quotes, querying account balance/margin/positions/P\&L, managing contracts & watchlists, and building automated trading systems via SinoPac broker. NOT for: historical fundamentals (EPS/revenue/financial statements), institutional investor chip data (三大法人/融資融券/股權分散), valuation metrics (PER/PBR), or macro economics — use the finmind skill instead."
 ---
 
 # Shioaji Trading API
@@ -13,7 +11,7 @@ Shioaji 是永豐金證券提供的 Python 交易 API，支援台灣股票、期
 **Official Docs 官方文檔**: https://sinotrade.github.io/
 **LLM Reference**: https://sinotrade.github.io/llms-full.txt
 
----
+***
 
 ## Navigation 功能導覽
 
@@ -24,13 +22,13 @@ Shioaji 是永豐金證券提供的 Python 交易 API，支援台灣股票、期
 | Orders 下單 | [ORDERS.md](ORDERS.md) | Place, modify, cancel, combo orders 下單/改單/刪單/組合單 |
 | Reserve 預收 | [RESERVE.md](RESERVE.md) | Reserve orders for disposition stocks 處置股預收券款 |
 | Streaming 行情 | [STREAMING.md](STREAMING.md) | Real-time tick & bidask data 即時 Tick/BidAsk 資料 |
-| Market Data 市場資料 | [MARKET_DATA.md](MARKET_DATA.md) | Historical, snapshot, credit, scanners 歷史資料/快照/資券/掃描器 |
-| Accounting 帳務 | [ACCOUNTING.md](ACCOUNTING.md) | Balance, margin, P&L, trading limits 餘額/保證金/損益/額度 |
+| Market Data 市場資料 | [MARKET\_DATA.md](MARKET_DATA.md) | Historical, snapshot, credit, scanners 歷史資料/快照/資券/掃描器 |
+| Accounting 帳務 | [ACCOUNTING.md](ACCOUNTING.md) | Balance, margin, P\&L, trading limits 餘額/保證金/損益/額度 |
 | Watchlist 自選股 | [WATCHLIST.md](WATCHLIST.md) | Custom stock lists management 自選股清單管理 |
 | Advanced 進階 | [ADVANCED.md](ADVANCED.md) | Quote binding, non-blocking, stop orders 報價綁定/非阻塞/觸價 |
 | Troubleshooting 問題排解 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and solutions 常見問題與解決 |
 
----
+***
 
 ## Quick Start 快速入門
 
@@ -82,10 +80,11 @@ api.login(api_key="YOUR_KEY", secret_key="YOUR_SECRET")
 ```
 
 **Available in simulation 模擬模式可用功能:**
-- Quote: subscribe, unsubscribe, ticks, kbars, snapshots
-- Order: place_order, update_order, cancel_order, update_status, list_trades
-- Account: list_positions, list_profit_loss
-- Data: short_stock_sources, credit_enquires, scanners
+
+* Quote: subscribe, unsubscribe, ticks, kbars, snapshots
+* Order: place\_order, update\_order, cancel\_order, update\_status, list\_trades
+* Account: list\_positions, list\_profit\_loss
+* Data: short\_stock\_sources, credit\_enquires, scanners
 
 ### Simple Order Example 簡單下單範例
 
@@ -107,23 +106,26 @@ order = api.Order(
 trade = api.place_order(contract, order)
 ```
 
----
+***
 
 ## Common Constants 常用常數
 
 ### Action 買賣方向
+
 ```python
 sj.constant.Action.Buy   # 買進
 sj.constant.Action.Sell  # 賣出
 ```
 
 ### Stock Price Type 股票價格類型
+
 ```python
 sj.constant.StockPriceType.LMT  # Limit 限價
 sj.constant.StockPriceType.MKT  # Market 市價
 ```
 
 ### Futures Price Type 期貨價格類型
+
 ```python
 sj.constant.FuturesPriceType.LMT  # Limit 限價
 sj.constant.FuturesPriceType.MKT  # Market 市價
@@ -131,6 +133,7 @@ sj.constant.FuturesPriceType.MKP  # Range Market 範圍市價
 ```
 
 ### Order Type 委託條件
+
 ```python
 sj.constant.OrderType.ROD  # Rest of Day 當日有效
 sj.constant.OrderType.IOC  # Immediate or Cancel 立即成交否則取消
@@ -138,6 +141,7 @@ sj.constant.OrderType.FOK  # Fill or Kill 全部成交否則取消
 ```
 
 ### Stock Order Lot 股票交易單位
+
 ```python
 sj.constant.StockOrderLot.Common      # Regular 整股 (1000 shares)
 sj.constant.StockOrderLot.BlockTrade  # Block trade 鉅額交易
@@ -147,6 +151,7 @@ sj.constant.StockOrderLot.Fixing      # Fixing 定盤
 ```
 
 ### Order Condition 信用交易條件
+
 ```python
 sj.constant.StockOrderCond.Cash          # Cash 現股
 sj.constant.StockOrderCond.MarginTrading # Margin 融資
@@ -154,6 +159,7 @@ sj.constant.StockOrderCond.ShortSelling  # Short 融券
 ```
 
 ### Quote Type 報價類型
+
 ```python
 sj.constant.QuoteType.Tick    # Tick data 逐筆成交
 sj.constant.QuoteType.BidAsk  # Bid/Ask data 五檔報價
@@ -161,6 +167,7 @@ sj.constant.QuoteType.Quote   # Combined quote 整合報價
 ```
 
 ### Futures OC Type 期貨新平倉
+
 ```python
 sj.constant.FuturesOCType.Auto      # Auto 自動
 sj.constant.FuturesOCType.New       # New position 新倉
@@ -169,6 +176,7 @@ sj.constant.FuturesOCType.DayTrade  # Day trade 當沖
 ```
 
 ### Order Status 委託狀態
+
 ```python
 sj.constant.Status.PendingSubmit  # 傳送中
 sj.constant.Status.PreSubmitted   # 預約送出
@@ -180,7 +188,7 @@ sj.constant.Status.Failed         # 失敗
 sj.constant.Status.Inactive       # 未啟用
 ```
 
----
+***
 
 ## Account Objects 帳戶物件
 
@@ -195,7 +203,7 @@ api.futopt_account
 api.list_accounts()
 ```
 
----
+***
 
 ## Rate Limits 流量限制
 
@@ -207,7 +215,7 @@ api.list_accounts()
 | Connections 連線數 | 5 per person ID |
 | Daily Logins 每日登入 | 1000 times |
 
----
+***
 
 ## Common Patterns 常用模式
 
@@ -258,7 +266,7 @@ api.update_order(trade=trade, price=590)
 api.update_order(trade=trade, qty=1)
 ```
 
----
+***
 
 ## Error Handling 錯誤處理
 
@@ -274,7 +282,7 @@ for trade in api.list_trades():
     print(trade.status)
 ```
 
----
+***
 
 ## Logout 登出
 
@@ -282,18 +290,18 @@ for trade in api.list_trades():
 api.logout()
 ```
 
----
+***
 
 ## Out of Scope 不在本 Skill 範圍
 
 The following are **NOT** available in Shioaji:
 以下功能 Shioaji **不提供**：
 
-- Historical fundamentals (EPS, revenue, financial statements, balance sheet, cash flow) 歷史基本面
-- Institutional investor chip data (三大法人買賣超, 融資融券, 股權分散表, 八大行庫, 分點進出) 法人籌碼
-- Valuation metrics (PER, PBR, dividend yield history) 估值指標
-- Macro economics (景氣指標, 恐懼貪婪指數) 總體經濟
-- Adjusted historical prices for backtesting 還原權值歷史價格
+* Historical fundamentals (EPS, revenue, financial statements, balance sheet, cash flow) 歷史基本面
+* Institutional investor chip data (三大法人買賣超, 融資融券, 股權分散表, 八大行庫, 分點進出) 法人籌碼
+* Valuation metrics (PER, PBR, dividend yield history) 估值指標
+* Macro economics (景氣指標, 恐懼貪婪指數) 總體經濟
+* Adjusted historical prices for backtesting 還原權值歷史價格
 
-**Use the `querying-finmind` skill for these tasks.**
-**請使用 `querying-finmind` skill 查詢以上資料。**
+**Use the `finmind` skill for these tasks.**
+**請使用 `finmind` skill 查詢以上資料。**
